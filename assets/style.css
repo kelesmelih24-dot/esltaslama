@@ -141,6 +141,12 @@ p{ margin:0 0 1em; color:var(--ink-600); }
 .header-cta{ display:flex; align-items:center; gap:14px; }
 .header-phone{ display:flex; flex-direction:column; text-align:right; font-family:var(--font-mono); color:var(--steel-200); font-size:13px; }
 .header-phone strong{ color:var(--white); font-size:15px; letter-spacing:.02em; }
+.admin-link{
+  display:flex; align-items:center; justify-content:center;
+  width:34px; height:34px; border-radius:50%; border:1px solid rgba(255,255,255,.18);
+  color:var(--steel-400); flex-shrink:0; transition:color .15s ease, border-color .15s ease, background .15s ease;
+}
+.admin-link:hover{ color:var(--white); border-color:rgba(255,255,255,.4); background:rgba(255,255,255,.06); }
 
 .nav-toggle{ display:none; background:none; border:1px solid rgba(255,255,255,.3); color:var(--white); padding:9px 11px; border-radius:2px; }
 

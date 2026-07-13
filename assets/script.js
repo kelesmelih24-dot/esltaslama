@@ -68,25 +68,80 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  /* Quote form: basic validation + friendly success state (static-site demo) */
+  /* Quote form: validate, save to database via our API, and also email a copy via FormSubmit */
   var form = document.getElementById('quote-form');
   if (form) {
     var success = document.getElementById('form-success');
     var errorBox = document.getElementById('form-error');
+    var submitBtn = form.querySelector('button[type="submit"]');
+
     form.addEventListener('submit', function (e) {
+      e.preventDefault();
+
       var required = form.querySelectorAll('[required]');
       var valid = true;
       required.forEach(function (field) {
         if (!field.value.trim()) valid = false;
       });
+
       if (!valid) {
-        e.preventDefault();
-        if (errorBox) { errorBox.classList.add('show'); }
-        if (success) success.classList.remove('show');
+        errorBox.textContent = 'Lütfen zorunlu (*) alanları eksiksiz doldurun.';
+        errorBox.classList.add('show');
+        success.classList.remove('show');
         return;
       }
-      if (errorBox) errorBox.classList.remove('show');
-      // Form submits to FormSubmit endpoint; show a local confirmation too.
+
+      errorBox.classList.remove('show');
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Gönderiliyor…'; }
+
+      var payload = {
+        adSoyad: (document.getElementById('ad-soyad') || {}).value || '',
+        firma: (document.getElementById('firma') || {}).value || '',
+        telefon: (document.getElementById('telefon') || {}).value || '',
+        eposta: (document.getElementById('eposta') || {}).value || '',
+        sehir: (document.getElementById('sehir') || {}).value || '',
+        hizmet: (document.getElementById('hizmet') || {}).value || '',
+        tezgah: (document.getElementById('tezgah') || {}).value || '',
+        mesaj: (document.getElementById('mesaj') || {}).value || '',
+      };
+
+      fetch('/api/submit-lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+        .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+        .then(function (result) {
+          if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Teklif Talebi Gönder'; }
+          if (!result.ok) {
+            errorBox.textContent = (result.data && result.data.error) || 'Talebiniz gönderilemedi. Lütfen tekrar deneyin.';
+            errorBox.classList.add('show');
+            return;
+          }
+          success.classList.add('show');
+          form.reset();
+          form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        })
+        .catch(function () {
+          if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Teklif Talebi Gönder'; }
+          errorBox.textContent = 'Sunucuya ulaşılamadı. Lütfen tekrar deneyin veya WhatsApp üzerinden yazın.';
+          errorBox.classList.add('show');
+        });
+
+      // Ayrıca e-posta bildirimi için FormSubmit'e arka planda (best-effort) bir kopya gönder.
+      try {
+        var emailPayload = new FormData();
+        emailPayload.append('Ad Soyad', payload.adSoyad);
+        emailPayload.append('Firma', payload.firma);
+        emailPayload.append('Telefon', payload.telefon);
+        emailPayload.append('E-posta', payload.eposta);
+        emailPayload.append('Şehir', payload.sehir);
+        emailPayload.append('Hizmet', payload.hizmet);
+        emailPayload.append('Tezgah Marka Model', payload.tezgah);
+        emailPayload.append('Mesaj', payload.mesaj);
+        emailPayload.append('_subject', 'Yeni Teklif Talebi - ESL Makina Web Sitesi');
+        fetch('https://formsubmit.co/ajax/esahin@mail.ru', { method: 'POST', body: emailPayload }).catch(function () {});
+      } catch (e) { /* sessiz geç, e-posta bildirimi ikincil */ }
     });
   }
 });
