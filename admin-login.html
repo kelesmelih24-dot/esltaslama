@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yönetici Girişi | ESL Makina</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/assets/images/logo_final.png">
+<link rel="stylesheet" href="/assets/style.css">
+<style>
+  body{ background:var(--navy-950); }
+  .login-wrap{
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .login-card{
+    width:100%; max-width:400px; background:var(--white); border:1px solid var(--steel-200);
+    padding:36px 32px; position:relative;
+  }
+  .login-card::before, .login-card::after{
+    content:""; position:absolute; width:16px; height:16px; border-color:var(--spark-500); border-style:solid; border-width:0;
+  }
+  .login-card::before{ top:-1px; left:-1px; border-top-width:2px; border-left-width:2px; }
+  .login-card::after{ bottom:-1px; right:-1px; border-bottom-width:2px; border-right-width:2px; }
+  .login-logo{ display:flex; align-items:center; gap:12px; margin-bottom:28px; }
+  .login-logo img{ height:44px; }
+  .login-logo strong{ font-family:var(--font-display); text-transform:uppercase; color:var(--navy-900); font-size:18px; display:block; }
+  .login-logo span{ font-family:var(--font-mono); font-size:11px; color:var(--ink-600); letter-spacing:.08em; text-transform:uppercase; }
+</style>
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">
+      <img src="/assets/images/logo_final.png" alt="ESL Makina logo">
+      <span><strong>ESL Makina</strong>Yönetici Paneli</span>
+    </div>
+
+    <div class="form-error" id="login-error" role="alert"></div>
+
+    <form id="login-form">
+      <div class="field">
+        <label for="username">Kullanıcı Adı</label>
+        <input type="text" id="username" name="username" required autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="password">Şifre</label>
+        <input type="password" id="password" name="password" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn btn-primary btn-block" id="login-btn">Giriş Yap</button>
+      <p class="form-note" style="text-align:center;"><a href="/" style="color:var(--ink-600);">← Anasayfaya dön</a></p>
+    </form>
+  </div>
+</div>
+
+<script>
+  var form = document.getElementById('login-form');
+  var errorBox = document.getElementById('login-error');
+  var btn = document.getElementById('login-btn');
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    errorBox.classList.remove('show');
+    btn.disabled = true;
+    btn.textContent = 'Giriş yapılıyor…';
+
+    try {
+      var res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: document.getElementById('username').value.trim(),
+          password: document.getElementById('password').value,
+        }),
+      });
+      var data = await res.json();
+      if (!res.ok) {
+        errorBox.textContent = data.error || 'Giriş başarısız.';
+        errorBox.classList.add('show');
+        btn.disabled = false;
+        btn.textContent = 'Giriş Yap';
+        return;
+      }
+      window.location.href = '/admin';
+    } catch (err) {
+      errorBox.textContent = 'Sunucuya ulaşılamadı. Lütfen tekrar deneyin.';
+      errorBox.classList.add('show');
+      btn.disabled = false;
+      btn.textContent = 'Giriş Yap';
+    }
+  });
+</script>
+</body>
+</html>

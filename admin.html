@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yönetici Paneli | ESL Makina</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/assets/images/logo_final.png">
+<link rel="stylesheet" href="/assets/style.css">
+<style>
+  .admin-header{
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    padding:16px 24px; background:var(--navy-900); flex-wrap:wrap;
+  }
+  .admin-header .login-logo{ display:flex; align-items:center; gap:12px; }
+  .admin-header .login-logo img{ height:38px; background:var(--steel-100); padding:2px; border-radius:2px; }
+  .admin-header .login-logo strong{ font-family:var(--font-display); text-transform:uppercase; color:var(--white); font-size:16px; display:block; }
+  .admin-header .login-logo span{ font-family:var(--font-mono); font-size:11px; color:var(--steel-400); letter-spacing:.08em; text-transform:uppercase; }
+  .admin-user{ display:flex; align-items:center; gap:14px; font-family:var(--font-mono); color:var(--steel-200); font-size:13px; }
+
+  .leads-table-wrap{ overflow-x:auto; border:1px solid var(--steel-200); }
+  table.leads-table{ width:100%; border-collapse:collapse; min-width:900px; font-size:14px; }
+  table.leads-table th{
+    text-align:left; font-family:var(--font-mono); font-size:11.5px; text-transform:uppercase;
+    letter-spacing:.05em; color:var(--ink-600); background:var(--steel-100); padding:12px 14px; border-bottom:1px solid var(--steel-200);
+    white-space:nowrap;
+  }
+  table.leads-table td{ padding:12px 14px; border-bottom:1px solid var(--steel-150); vertical-align:top; }
+  table.leads-table td.msg-cell{ max-width:280px; white-space:pre-wrap; }
+  table.leads-table tr:last-child td{ border-bottom:none; }
+  .empty-state{ padding:40px 20px; text-align:center; color:var(--ink-600); font-family:var(--font-mono); font-size:14px; }
+  .loading-state{ padding:40px 20px; text-align:center; color:var(--ink-600); font-family:var(--font-mono); font-size:14px; }
+
+  .account-box{ max-width:480px; }
+  #account-success, #account-error, #leads-error{
+    display:none; padding:14px 16px; border-radius:2px; font-family:var(--font-mono); font-size:13.5px; margin-bottom:16px;
+  }
+  #account-success.show, #account-error.show, #leads-error.show{ display:block; }
+  #account-success{ background:#E4F3E7; color:#1E6B36; border:1px solid #BEE3C4; }
+  #account-error, #leads-error{ background:#FBE4DB; color:var(--spark-600); border:1px solid var(--spark-100); }
+</style>
+</head>
+<body>
+
+<header class="admin-header">
+  <div class="login-logo">
+    <img src="/assets/images/logo_final.png" alt="ESL Makina logo">
+    <span><strong>ESL Makina</strong>Yönetici Paneli</span>
+  </div>
+  <div class="admin-user">
+    <span id="admin-username">…</span>
+    <button class="btn btn-outline" id="logout-btn" style="padding:9px 16px;">Çıkış Yap</button>
+  </div>
+</header>
+
+<main>
+  <section class="section section--steel section--tight">
+    <div class="container">
+      <div id="checking-auth" class="loading-state">Oturum kontrol ediliyor…</div>
+
+      <div id="admin-content" style="display:none;">
+
+        <div class="section-head">
+          <p class="eyebrow">Teklif Talepleri</p>
+          <h2 style="font-size:26px;">Gelen Kayıtlar</h2>
+          <p class="lede">Web sitesindeki "Teklif Al" formundan gelen tüm talepler burada listelenir.</p>
+        </div>
+
+        <div id="leads-error" role="alert"></div>
+        <div id="leads-loading" class="loading-state">Kayıtlar yükleniyor…</div>
+        <div id="leads-empty" class="empty-state" style="display:none;">Henüz bir teklif talebi yok.</div>
+
+        <div class="leads-table-wrap" id="leads-table-wrap" style="display:none;">
+          <table class="leads-table">
+            <thead>
+              <tr>
+                <th>Tarih</th>
+                <th>Ad Soyad</th>
+                <th>Firma</th>
+                <th>Telefon</th>
+                <th>E-posta</th>
+                <th>Şehir</th>
+                <th>Hizmet</th>
+                <th>Tezgah</th>
+                <th>Mesaj</th>
+              </tr>
+            </thead>
+            <tbody id="leads-tbody"></tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tight" id="account-section" style="display:none;">
+    <div class="container">
+      <div class="section-head account-box">
+        <p class="eyebrow">Hesap Ayarları</p>
+        <h2 style="font-size:22px;">Kullanıcı Adı / Şifre Değiştir</h2>
+        <p class="lede" style="font-size:14px;">Varsayılan giriş bilgisi <strong>admin / 123</strong> idi — güvenlik için şimdi değiştirmenizi öneririz.</p>
+      </div>
+
+      <div class="account-box">
+        <div id="account-success" role="status">Bilgileriniz güncellendi.</div>
+        <div id="account-error" role="alert"></div>
+
+        <form id="account-form">
+          <div class="field">
+            <label for="current-password">Mevcut Şifre <span class="req">*</span></label>
+            <input type="password" id="current-password" required autocomplete="current-password">
+          </div>
+          <div class="field">
+            <label for="new-username">Yeni Kullanıcı Adı (opsiyonel)</label>
+            <input type="text" id="new-username" autocomplete="username">
+          </div>
+          <div class="field">
+            <label for="new-password">Yeni Şifre (opsiyonel, en az 4 karakter)</label>
+            <input type="password" id="new-password" autocomplete="new-password">
+          </div>
+          <button type="submit" class="btn btn-ghost" id="account-btn">Bilgileri Güncelle</button>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  var checkingAuth = document.getElementById('checking-auth');
+  var adminContent = document.getElementById('admin-content');
+  var accountSection = document.getElementById('account-section');
+  var adminUsernameEl = document.getElementById('admin-username');
+
+  async function checkAuth() {
+    try {
+      var res = await fetch('/api/me');
+      var data = await res.json();
+      if (!res.ok || !data.authenticated) {
+        window.location.href = '/admin-login';
+        return;
+      }
+      adminUsernameEl.textContent = data.username;
+      checkingAuth.style.display = 'none';
+      adminContent.style.display = 'block';
+      accountSection.style.display = 'block';
+      loadLeads();
+    } catch (err) {
+      window.location.href = '/admin-login';
+    }
+  }
+
+  async function loadLeads() {
+    var loadingEl = document.getElementById('leads-loading');
+    var emptyEl = document.getElementById('leads-empty');
+    var wrapEl = document.getElementById('leads-table-wrap');
+    var tbody = document.getElementById('leads-tbody');
+    var errorEl = document.getElementById('leads-error');
+
+    try {
+      var res = await fetch('/api/leads');
+      var data = await res.json();
+      loadingEl.style.display = 'none';
+
+      if (!res.ok) {
+        errorEl.textContent = data.error || 'Kayıtlar yüklenemedi.';
+        errorEl.classList.add('show');
+        return;
+      }
+
+      if (!data.leads || data.leads.length === 0) {
+        emptyEl.style.display = 'block';
+        return;
+      }
+
+      data.leads.forEach(function (lead) {
+        var tr = document.createElement('tr');
+        var date = new Date(lead.created_at);
+        var dateStr = date.toLocaleDateString('tr-TR') + ' ' + date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+        function cell(text) {
+          var td = document.createElement('td');
+          td.textContent = text || '—';
+          return td;
+        }
+        tr.appendChild(cell(dateStr));
+        tr.appendChild(cell(lead.ad_soyad));
+        tr.appendChild(cell(lead.firma));
+        tr.appendChild(cell(lead.telefon));
+        tr.appendChild(cell(lead.eposta));
+        tr.appendChild(cell(lead.sehir));
+        tr.appendChild(cell(lead.hizmet));
+        tr.appendChild(cell(lead.tezgah));
+        var msgTd = cell(lead.mesaj);
+        msgTd.classList.add('msg-cell');
+        tr.appendChild(msgTd);
+        tbody.appendChild(tr);
+      });
+
+      wrapEl.style.display = 'block';
+    } catch (err) {
+      loadingEl.style.display = 'none';
+      errorEl.textContent = 'Sunucuya ulaşılamadı.';
+      errorEl.classList.add('show');
+    }
+  }
+
+  document.getElementById('logout-btn').addEventListener('click', async function () {
+    await fetch('/api/logout', { method: 'POST' });
+    window.location.href = '/admin-login';
+  });
+
+  document.getElementById('account-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var successEl = document.getElementById('account-success');
+    var errorEl = document.getElementById('account-error');
+    successEl.classList.remove('show');
+    errorEl.classList.remove('show');
+
+    var btn = document.getElementById('account-btn');
+    btn.disabled = true;
+
+    try {
+      var res = await fetch('/api/account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentPassword: document.getElementById('current-password').value,
+          newUsername: document.getElementById('new-username').value.trim(),
+          newPassword: document.getElementById('new-password').value,
+        }),
+      });
+      var data = await res.json();
+      btn.disabled = false;
+
+      if (!res.ok) {
+        errorEl.textContent = data.error || 'Güncelleme başarısız.';
+        errorEl.classList.add('show');
+        return;
+      }
+
+      successEl.classList.add('show');
+      adminUsernameEl.textContent = data.username;
+      document.getElementById('account-form').reset();
+    } catch (err) {
+      btn.disabled = false;
+      errorEl.textContent = 'Sunucuya ulaşılamadı.';
+      errorEl.classList.add('show');
+    }
+  });
+
+  checkAuth();
+</script>
+</body>
+</html>

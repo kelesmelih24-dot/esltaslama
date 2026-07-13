@@ -53,7 +53,31 @@ Kod içinde SEO amaçlı `https://www.eslmakina.com.tr` placeholder domaini kull
 
 ## 5) Teklif Formu
 
-`teklif-al.html` içindeki form, FormSubmit.co servisi üzerinden `eşahin@mail.ru` adresine e-posta gönderecek şekilde ayarlandı. Siteyi yayınladıktan sonra formu bir kez test edin; FormSubmit ilk gönderimde e-postanıza bir onay linki yollar, o linke tıklandıktan sonra form kalıcı olarak aktif çalışır.
+`teklif-al.html` içindeki form artık **kendi veritabanınıza** kaydediliyor (aşağıdaki Admin Paneli bölümüne bakın) ve ayrıca yedek olarak FormSubmit.co üzerinden `eşahin@mail.ru` adresine bir bildirim e-postası da gönderiliyor. FormSubmit ilk gönderimde e-postanıza bir onay linki yollar, o linke tıklandıktan sonra bildirim e-postaları düzenli gelmeye başlar (bu adım opsiyoneldir, atlarsanız talepler yine de panelde görünür).
+
+## 6) Admin Paneli ve Veritabanı Kurulumu
+
+Siteye şifreli bir yönetici paneli eklendi (`/admin`). Panelden, "Teklif Al" formuna gelen tüm talepleri görebilir ve kullanıcı adı/şifrenizi değiştirebilirsiniz. Bu özellik bir **Postgres veritabanı** ve bir **gizli anahtar (JWT_SECRET)** gerektirir. Vercel projenizde tek seferlik şu adımları uygulayın:
+
+### a) Veritabanını bağlayın
+1. Vercel projenizde **Storage** sekmesine gidin.
+2. **Create Database → Postgres** seçip projeye bağlayın (Vercel gerekli `POSTGRES_URL` ortam değişkenlerini otomatik ekler).
+
+### b) Gizli anahtarı ekleyin
+1. **Settings → Environment Variables** kısmına gidin.
+2. Adı `JWT_SECRET`, değeri rastgele/uzun bir metin (ör. `openssl rand -hex 32` ile üretebileceğiniz bir dize) olan yeni bir değişken ekleyin.
+3. Kaydettikten sonra projeyi yeniden deploy edin (Deployments → sağ üstteki menüden "Redeploy").
+
+### c) Giriş yapın
+1. Siteniz yayında iken `https://SIZIN-ALAN-ADINIZ/admin-login` adresine gidin.
+2. Varsayılan giriş bilgisi: **kullanıcı adı `admin`, şifre `123`** (veritabanı boşken otomatik oluşturulur).
+3. Giriş yaptıktan sonra panelin altındaki **"Hesap Ayarları"** bölümünden kullanıcı adınızı ve şifrenizi değiştirin — bunu ilk girişte yapmanızı önemle tavsiye ederiz.
+
+### Not
+- Yönetici sayfaları (`/admin`, `/admin-login`) ve `/api/` uçları arama motorlarında indekslenmez (`robots.txt` ve `noindex` ile hariç tutuldu).
+- Şifreler veritabanında düz metin değil, **bcrypt ile hash'lenmiş** olarak saklanır.
+- Oturum, güvenli/HttpOnly bir çerez (JWT) ile 7 gün geçerli olacak şekilde tutulur.
+
 
 ## Google Search Console
 

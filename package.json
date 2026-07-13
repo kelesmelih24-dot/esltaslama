@@ -1,0 +1,15 @@
+{
+  "name": "esl-makina-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ESL Makina Taşlama Tezgahları — statik site + admin paneli (Vercel Serverless Functions + Postgres)",
+  "engines": {
+    "node": "20.x"
+  },
+  "dependencies": {
+    "@vercel/postgres": "^0.10.0",
+    "bcryptjs": "^3.0.3",
+    "jsonwebtoken": "^9.0.3",
+    "cookie": "^2.0.1"
+  }
+}
