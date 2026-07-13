@@ -1,4 +1,4 @@
-const { sql, ensureSchema } = require('./_db');
+const { getClient } = require('./_db');
 const { getSession } = require('./_auth');
 
 module.exports = async (req, res) => {
@@ -11,9 +11,16 @@ module.exports = async (req, res) => {
   }
 
   try {
-    await ensureSchema();
-    const { rows } = await sql`SELECT * FROM leads ORDER BY created_at DESC LIMIT 300;`;
-    return res.status(200).json({ leads: rows });
+    const supabase = getClient();
+    const { data, error } = await supabase
+      .from('leads')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(300);
+
+    if (error) throw error;
+
+    return res.status(200).json({ leads: data });
   } catch (err) {
     console.error('leads error:', err);
     return res.status(500).json({ error: 'Sunucu hatası.' });

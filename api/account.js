@@ -1,5 +1,5 @@
-const { sql, ensureSchema } = require('./_db');
 const bcrypt = require('bcryptjs');
+const { getClient } = require('./_db');
 const { getSession, setSessionCookie } = require('./_auth');
 
 module.exports = async (req, res) => {
@@ -12,8 +12,6 @@ module.exports = async (req, res) => {
   }
 
   try {
-    await ensureSchema();
-
     const { currentPassword, newUsername, newPassword } = req.body || {};
     if (!currentPassword) {
       return res.status(400).json({ error: 'Mevcut şifrenizi girmeniz gerekiyor.' });
@@ -22,8 +20,14 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Yeni şifre en az 4 karakter olmalı.' });
     }
 
-    const { rows } = await sql`SELECT * FROM admin_users WHERE username = ${session.sub} LIMIT 1;`;
-    const user = rows[0];
+    const supabase = getClient();
+    const { data: user, error: fetchError } = await supabase
+      .from('admin_users')
+      .select('*')
+      .eq('username', session.sub)
+      .maybeSingle();
+
+    if (fetchError) throw fetchError;
 
     if (!user || !bcrypt.compareSync(currentPassword, user.password_hash)) {
       return res.status(401).json({ error: 'Mevcut şifre hatalı.' });
@@ -34,15 +38,22 @@ module.exports = async (req, res) => {
       ? bcrypt.hashSync(newPassword, 10)
       : user.password_hash;
 
-    await sql`UPDATE admin_users SET username = ${finalUsername}, password_hash = ${finalHash} WHERE id = ${user.id};`;
+    const { error: updateError } = await supabase
+      .from('admin_users')
+      .update({ username: finalUsername, password_hash: finalHash })
+      .eq('id', user.id);
+
+    if (updateError) {
+      if (updateError.code === '23505') {
+        return res.status(409).json({ error: 'Bu kullanıcı adı zaten kullanılıyor.' });
+      }
+      throw updateError;
+    }
 
     setSessionCookie(res, finalUsername);
     return res.status(200).json({ ok: true, username: finalUsername });
   } catch (err) {
     console.error('account error:', err);
-    if (err && err.message && err.message.includes('duplicate key')) {
-      return res.status(409).json({ error: 'Bu kullanıcı adı zaten kullanılıyor.' });
-    }
     return res.status(500).json({ error: 'Sunucu hatası.' });
   }
 };

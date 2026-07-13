@@ -1,4 +1,4 @@
-const { sql, ensureSchema } = require('./_db');
+const { getClient } = require('./_db');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
@@ -6,8 +6,6 @@ module.exports = async (req, res) => {
   }
 
   try {
-    await ensureSchema();
-
     const b = req.body || {};
     const adSoyad = String(b.adSoyad || '').trim().slice(0, 200);
     const firma = String(b.firma || '').trim().slice(0, 200);
@@ -22,8 +20,19 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Lütfen zorunlu alanları eksiksiz doldurun.' });
     }
 
-    await sql`INSERT INTO leads (ad_soyad, firma, telefon, eposta, sehir, hizmet, tezgah, mesaj)
-      VALUES (${adSoyad}, ${firma}, ${telefon}, ${eposta}, ${sehir}, ${hizmet}, ${tezgah}, ${mesaj});`;
+    const supabase = getClient();
+    const { error } = await supabase.from('leads').insert({
+      ad_soyad: adSoyad,
+      firma,
+      telefon,
+      eposta,
+      sehir,
+      hizmet,
+      tezgah,
+      mesaj,
+    });
+
+    if (error) throw error;
 
     return res.status(200).json({ ok: true });
   } catch (err) {

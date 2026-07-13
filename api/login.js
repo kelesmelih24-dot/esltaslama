@@ -1,5 +1,5 @@
-const { sql, ensureSchema } = require('./_db');
 const bcrypt = require('bcryptjs');
+const { getClient } = require('./_db');
 const { setSessionCookie } = require('./_auth');
 
 module.exports = async (req, res) => {
@@ -12,15 +12,19 @@ module.exports = async (req, res) => {
       return res.status(500).json({ error: 'Sunucu yapılandırma hatası: JWT_SECRET tanımlı değil.' });
     }
 
-    await ensureSchema();
-
     const { username, password } = req.body || {};
     if (!username || !password) {
       return res.status(400).json({ error: 'Kullanıcı adı ve şifre gerekli.' });
     }
 
-    const { rows } = await sql`SELECT * FROM admin_users WHERE username = ${username} LIMIT 1;`;
-    const user = rows[0];
+    const supabase = getClient();
+    const { data: user, error } = await supabase
+      .from('admin_users')
+      .select('*')
+      .eq('username', username)
+      .maybeSingle();
+
+    if (error) throw error;
 
     if (!user || !bcrypt.compareSync(password, user.password_hash)) {
       return res.status(401).json({ error: 'Kullanıcı adı veya şifre hatalı.' });

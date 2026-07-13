@@ -1,42 +1,25 @@
-// Ortak veritabanı yardımcı modülü.
-// Vercel Postgres bağlandığında POSTGRES_URL ortam değişkeni otomatik tanımlanır.
-const { sql } = require('@vercel/postgres');
-const bcrypt = require('bcryptjs');
+// Ortak Supabase istemcisi.
+// SUPABASE_URL ve SUPABASE_SERVICE_ROLE_KEY, Vercel ortam değişkenlerinden okunur.
+// Service role key yalnızca sunucu tarafında (bu /api fonksiyonlarında) kullanılır,
+// tarayıcıya asla gönderilmez.
+const { createClient } = require('@supabase/supabase-js');
 
-let schemaReady = false;
+let client = null;
 
-async function ensureSchema() {
-  if (schemaReady) return;
+function getClient() {
+  if (client) return client;
 
-  await sql`CREATE TABLE IF NOT EXISTS admin_users (
-    id SERIAL PRIMARY KEY,
-    username TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT now()
-  );`;
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  await sql`CREATE TABLE IF NOT EXISTS leads (
-    id SERIAL PRIMARY KEY,
-    ad_soyad TEXT,
-    firma TEXT,
-    telefon TEXT,
-    eposta TEXT,
-    sehir TEXT,
-    hizmet TEXT,
-    tezgah TEXT,
-    mesaj TEXT,
-    created_at TIMESTAMPTZ DEFAULT now()
-  );`;
-
-  const { rows } = await sql`SELECT COUNT(*)::int AS count FROM admin_users;`;
-  if (rows[0].count === 0) {
-    const defaultHash = bcrypt.hashSync('123', 10);
-    await sql`INSERT INTO admin_users (username, password_hash)
-      VALUES ('admin', ${defaultHash})
-      ON CONFLICT (username) DO NOTHING;`;
+  if (!url || !key) {
+    throw new Error('SUPABASE_URL veya SUPABASE_SERVICE_ROLE_KEY tanımlı değil.');
   }
 
-  schemaReady = true;
+  client = createClient(url, key, {
+    auth: { persistSession: false },
+  });
+  return client;
 }
 
-module.exports = { sql, ensureSchema };
+module.exports = { getClient };
