@@ -2,6 +2,14 @@
 // SUPABASE_URL ve SUPABASE_SERVICE_ROLE_KEY, Vercel ortam değişkenlerinden okunur.
 // Service role key yalnızca sunucu tarafında (bu /api fonksiyonlarında) kullanılır,
 // tarayıcıya asla gönderilmez.
+
+// Supabase istemcisi arka planda bir "realtime" (WebSocket) istemcisi de kuruyor.
+// Bazı Node.js sürümlerinde global WebSocket bulunmadığı için burada "ws" paketiyle
+// polyfill ediyoruz (biz realtime özelliğini kullanmıyoruz, sadece bu hatayı önlüyor).
+if (typeof globalThis.WebSocket === 'undefined') {
+  globalThis.WebSocket = require('ws');
+}
+
 const { createClient } = require('@supabase/supabase-js');
 
 let client = null;
