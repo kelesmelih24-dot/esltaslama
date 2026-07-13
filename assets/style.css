@@ -247,12 +247,12 @@ p{ margin:0 0 1em; color:var(--ink-600); }
 
 /* ---------- before/after slider ---------- */
 .compare{
-  position:relative; width:100%; aspect-ratio:700/460; overflow:hidden;
+  position:relative; width:100%; max-width:520px; aspect-ratio:480/316; overflow:hidden;
   border:1px solid var(--steel-200); user-select:none; touch-action:pan-y; background:var(--steel-100);
 }
-.compare img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; pointer-events:none; }
+.compare img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; pointer-events:none; image-rendering:-webkit-optimize-contrast; }
 .compare .after-wrap{ position:absolute; inset:0; width:50%; overflow:hidden; }
-.compare .after-wrap img{ width:var(--compare-w, 700px); max-width:none; height:100%; }
+.compare .after-wrap img{ width:var(--compare-w, 480px); max-width:none; height:100%; }
 .compare-handle{
   position:absolute; top:0; bottom:0; left:50%; width:2px; background:var(--spark-500);
   transform:translateX(-1px); cursor:ew-resize;
@@ -291,8 +291,8 @@ p{ margin:0 0 1em; color:var(--ink-600); }
 .value-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:22px; }
 @media (max-width:860px){ .value-grid{ grid-template-columns:1fr; } }
 .value-card{ padding:26px; background:var(--steel-100); border-left:3px solid var(--spark-500); }
-.value-card h3{ font-size:16px; }
-.value-card p{ font-size:14px; margin:0; }
+.value-card h3{ font-size:16px; color:var(--navy-900); }
+.value-card p{ font-size:14px; margin:0; color:var(--ink-600); }
 
 /* ---------- stats strip ---------- */
 .stats-strip{ display:flex; flex-wrap:wrap; gap:0; border:1px solid var(--steel-200); }
@@ -305,7 +305,7 @@ p{ margin:0 0 1em; color:var(--ink-600); }
 .project-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:26px; }
 @media (max-width:760px){ .project-grid{ grid-template-columns:1fr; } }
 .project-card{ background:var(--white); border:1px solid var(--steel-200); }
-.project-card .compare{ aspect-ratio:700/440; }
+.project-card .compare{ aspect-ratio:480/316; max-width:none; }
 .project-card .info{ padding:20px 22px; }
 .project-card h3{ font-size:16px; margin-bottom:6px; }
 .project-card p{ font-size:14px; margin:0; }
