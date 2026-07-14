@@ -6,7 +6,7 @@
 <title>Yönetici Paneli | ESL Makina</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="/assets/images/logo_final.png">
-<link rel="stylesheet" href="/assets/style.css?v=2">
+<link rel="stylesheet" href="/assets/style.css?v=3">
 <style>
   .admin-header{
     display:flex; align-items:center; justify-content:space-between; gap:16px;
@@ -17,6 +17,19 @@
   .admin-header .login-logo strong{ font-family:var(--font-display); text-transform:uppercase; color:var(--white); font-size:16px; display:block; }
   .admin-header .login-logo span{ font-family:var(--font-mono); font-size:11px; color:var(--steel-400); letter-spacing:.08em; text-transform:uppercase; }
   .admin-user{ display:flex; align-items:center; gap:14px; font-family:var(--font-mono); color:var(--steel-200); font-size:13px; }
+
+  .admin-tabs{
+    display:flex; gap:2px; background:var(--navy-950); padding:0 24px; overflow-x:auto;
+  }
+  .admin-tab{
+    font-family:var(--font-mono); font-size:13px; letter-spacing:.03em; text-transform:uppercase;
+    color:var(--steel-400); background:none; border:none; padding:14px 18px; cursor:pointer; white-space:nowrap;
+    border-bottom:2px solid transparent;
+  }
+  .admin-tab:hover{ color:var(--white); }
+  .admin-tab.active{ color:var(--white); border-bottom-color:var(--spark-500); }
+  .admin-panel{ display:none; }
+  .admin-panel.active{ display:block; }
 
   .leads-table-wrap{ overflow-x:auto; border:1px solid var(--steel-200); }
   table.leads-table{ width:100%; border-collapse:collapse; min-width:900px; font-size:14px; }
@@ -32,12 +45,36 @@
   .loading-state{ padding:40px 20px; text-align:center; color:var(--ink-600); font-family:var(--font-mono); font-size:14px; }
 
   .account-box{ max-width:480px; }
-  #account-success, #account-error, #leads-error{
+  .msg-box{
     display:none; padding:14px 16px; border-radius:2px; font-family:var(--font-mono); font-size:13.5px; margin-bottom:16px;
   }
-  #account-success.show, #account-error.show, #leads-error.show{ display:block; }
-  #account-success{ background:#E4F3E7; color:#1E6B36; border:1px solid #BEE3C4; }
-  #account-error, #leads-error{ background:#FBE4DB; color:var(--spark-600); border:1px solid var(--spark-100); }
+  .msg-box.show{ display:block; }
+  .msg-success{ background:#E4F3E7; color:#1E6B36; border:1px solid #BEE3C4; }
+  .msg-error{ background:#FBE4DB; color:var(--spark-600); border:1px solid var(--spark-100); }
+
+  .admin-item-row{
+    display:flex; gap:16px; align-items:flex-start; padding:16px; border:1px solid var(--steel-200); margin-bottom:12px; background:var(--white);
+  }
+  .admin-item-row .thumbs{ display:flex; gap:6px; flex-shrink:0; }
+  .admin-item-row .thumbs img{ width:64px; height:44px; object-fit:cover; border:1px solid var(--steel-200); }
+  .admin-item-row .content{ flex:1; min-width:0; }
+  .admin-item-row .content h4{ font-family:var(--font-display); font-size:15px; text-transform:uppercase; color:var(--navy-900); margin:0 0 4px; }
+  .admin-item-row .content p{ font-size:13.5px; margin:0; color:var(--ink-600); }
+  .admin-item-row .actions{ display:flex; gap:8px; flex-shrink:0; }
+  .admin-item-row .actions button{
+    font-family:var(--font-mono); font-size:12px; text-transform:uppercase; padding:8px 12px;
+    border:1px solid var(--steel-200); background:var(--white); cursor:pointer; border-radius:2px;
+  }
+  .admin-item-row .actions button:hover{ border-color:var(--navy-900); }
+  .admin-item-row .actions button.danger:hover{ border-color:var(--spark-500); color:var(--spark-600); }
+
+  .form-card{ border:1px solid var(--steel-200); padding:22px; background:var(--steel-100); margin-bottom:28px; }
+  .form-card h3{ font-size:15px; margin-bottom:14px; }
+  .file-field input[type="file"]{
+    width:100%; padding:10px; border:1.5px dashed var(--steel-200); background:var(--white); font-family:var(--font-mono); font-size:13px;
+  }
+  .file-preview{ margin-top:8px; display:flex; gap:8px; }
+  .file-preview img{ width:90px; height:60px; object-fit:cover; border:1px solid var(--steel-200); }
 </style>
 </head>
 <body>
@@ -53,6 +90,14 @@
   </div>
 </header>
 
+<nav class="admin-tabs" id="admin-tabs" style="display:none;">
+  <button class="admin-tab active" data-tab="leads">Teklifler</button>
+  <button class="admin-tab" data-tab="content">Anasayfa &amp; İletişim</button>
+  <button class="admin-tab" data-tab="services">Hizmetler</button>
+  <button class="admin-tab" data-tab="projects">Projeler</button>
+  <button class="admin-tab" data-tab="account">Hesap</button>
+</nav>
+
 <main>
   <section class="section section--steel section--tight">
     <div class="container">
@@ -60,66 +105,209 @@
 
       <div id="admin-content" style="display:none;">
 
-        <div class="section-head">
-          <p class="eyebrow">Teklif Talepleri</p>
-          <h2 style="font-size:26px;">Gelen Kayıtlar</h2>
-          <p class="lede">Web sitesindeki "Teklif Al" formundan gelen tüm talepler burada listelenir.</p>
+        <!-- ================= TEKLİFLER ================= -->
+        <div class="admin-panel active" id="panel-leads">
+          <div class="section-head">
+            <p class="eyebrow">Teklif Talepleri</p>
+            <h2 style="font-size:24px;">Gelen Kayıtlar</h2>
+            <p class="lede">Web sitesindeki "Teklif Al" formundan gelen tüm talepler burada listelenir.</p>
+          </div>
+
+          <div id="leads-error" class="msg-box msg-error" role="alert"></div>
+          <div id="leads-loading" class="loading-state">Kayıtlar yükleniyor…</div>
+          <div id="leads-empty" class="empty-state" style="display:none;">Henüz bir teklif talebi yok.</div>
+
+          <div class="leads-table-wrap" id="leads-table-wrap" style="display:none;">
+            <table class="leads-table">
+              <thead>
+                <tr>
+                  <th>Tarih</th><th>Ad Soyad</th><th>Firma</th><th>Telefon</th>
+                  <th>E-posta</th><th>Şehir</th><th>Hizmet</th><th>Tezgah</th><th>Mesaj</th>
+                </tr>
+              </thead>
+              <tbody id="leads-tbody"></tbody>
+            </table>
+          </div>
         </div>
 
-        <div id="leads-error" role="alert"></div>
-        <div id="leads-loading" class="loading-state">Kayıtlar yükleniyor…</div>
-        <div id="leads-empty" class="empty-state" style="display:none;">Henüz bir teklif talebi yok.</div>
+        <!-- ================= ANASAYFA & İLETİŞİM ================= -->
+        <div class="admin-panel" id="panel-content">
+          <div class="section-head">
+            <p class="eyebrow">İçerik</p>
+            <h2 style="font-size:24px;">Anasayfa Metinleri &amp; İletişim Bilgileri</h2>
+            <p class="lede">Buradaki değişiklikler sitenin ilgili bölümlerine anında yansır.</p>
+          </div>
 
-        <div class="leads-table-wrap" id="leads-table-wrap" style="display:none;">
-          <table class="leads-table">
-            <thead>
-              <tr>
-                <th>Tarih</th>
-                <th>Ad Soyad</th>
-                <th>Firma</th>
-                <th>Telefon</th>
-                <th>E-posta</th>
-                <th>Şehir</th>
-                <th>Hizmet</th>
-                <th>Tezgah</th>
-                <th>Mesaj</th>
-              </tr>
-            </thead>
-            <tbody id="leads-tbody"></tbody>
-          </table>
+          <div class="form-card account-box">
+            <h3>Anasayfa Başlığı</h3>
+            <div id="hero-success" class="msg-box msg-success" role="status">Kaydedildi.</div>
+            <div id="hero-error" class="msg-box msg-error" role="alert"></div>
+            <form id="hero-form">
+              <div class="field">
+                <label for="hero-eyebrow-input">Üst Etiket</label>
+                <input type="text" id="hero-eyebrow-input">
+              </div>
+              <div class="field">
+                <label for="hero-title-input">Başlık (turuncu vurgu için kelimeyi **iki yıldız** arasına alın)</label>
+                <textarea id="hero-title-input" rows="2"></textarea>
+              </div>
+              <div class="field">
+                <label for="hero-subtitle-input">Alt Açıklama</label>
+                <textarea id="hero-subtitle-input" rows="3"></textarea>
+              </div>
+              <button type="submit" class="btn btn-ghost">Anasayfa Metnini Kaydet</button>
+            </form>
+          </div>
+
+          <div class="form-card account-box">
+            <h3>İletişim Bilgileri</h3>
+            <div id="contact-success" class="msg-box msg-success" role="status">Kaydedildi.</div>
+            <div id="contact-error" class="msg-box msg-error" role="alert"></div>
+            <form id="contact-form">
+              <div class="field-row">
+                <div class="field">
+                  <label for="contact-phone1">Telefon 1</label>
+                  <input type="text" id="contact-phone1">
+                </div>
+                <div class="field">
+                  <label for="contact-phone2">Telefon 2</label>
+                  <input type="text" id="contact-phone2">
+                </div>
+              </div>
+              <div class="field">
+                <label for="contact-email">E-posta</label>
+                <input type="text" id="contact-email">
+              </div>
+              <div class="field">
+                <label for="contact-address">Adres</label>
+                <input type="text" id="contact-address">
+              </div>
+              <div class="field">
+                <label for="contact-hours">Çalışma Saatleri</label>
+                <input type="text" id="contact-hours">
+              </div>
+              <button type="submit" class="btn btn-ghost">İletişim Bilgilerini Kaydet</button>
+            </form>
+          </div>
         </div>
 
-      </div>
-    </div>
-  </section>
-
-  <section class="section section--tight" id="account-section" style="display:none;">
-    <div class="container">
-      <div class="section-head account-box">
-        <p class="eyebrow">Hesap Ayarları</p>
-        <h2 style="font-size:22px;">Kullanıcı Adı / Şifre Değiştir</h2>
-        <p class="lede" style="font-size:14px;">Varsayılan giriş bilgisi <strong>admin / 123</strong> idi — güvenlik için şimdi değiştirmenizi öneririz.</p>
-      </div>
-
-      <div class="account-box">
-        <div id="account-success" role="status">Bilgileriniz güncellendi.</div>
-        <div id="account-error" role="alert"></div>
-
-        <form id="account-form">
-          <div class="field">
-            <label for="current-password">Mevcut Şifre <span class="req">*</span></label>
-            <input type="password" id="current-password" required autocomplete="current-password">
+        <!-- ================= HİZMETLER ================= -->
+        <div class="admin-panel" id="panel-services">
+          <div class="section-head">
+            <p class="eyebrow">Hizmetler</p>
+            <h2 style="font-size:24px;">Hizmet Listesi</h2>
+            <p class="lede">Anasayfa ve Hizmetlerimiz sayfasındaki kart listesi buradan yönetilir.</p>
           </div>
-          <div class="field">
-            <label for="new-username">Yeni Kullanıcı Adı (opsiyonel)</label>
-            <input type="text" id="new-username" autocomplete="username">
+
+          <div id="services-error" class="msg-box msg-error" role="alert"></div>
+          <div id="services-loading" class="loading-state">Yükleniyor…</div>
+          <div id="services-list"></div>
+
+          <div class="form-card account-box" style="margin-top:20px;">
+            <h3 id="service-form-title">Yeni Hizmet Ekle</h3>
+            <div id="service-success" class="msg-box msg-success" role="status">Kaydedildi.</div>
+            <div id="service-error" class="msg-box msg-error" role="alert"></div>
+            <form id="service-form">
+              <input type="hidden" id="service-id">
+              <div class="field">
+                <label for="service-title">Başlık</label>
+                <input type="text" id="service-title" required>
+              </div>
+              <div class="field">
+                <label for="service-desc">Açıklama</label>
+                <textarea id="service-desc" rows="2" required></textarea>
+              </div>
+              <div class="field">
+                <label for="service-order">Sıra Numarası</label>
+                <input type="number" id="service-order" value="0">
+              </div>
+              <button type="submit" class="btn btn-ghost" id="service-submit-btn">Hizmeti Kaydet</button>
+              <button type="button" class="btn btn-outline" id="service-cancel-btn" style="display:none;">Vazgeç</button>
+            </form>
           </div>
-          <div class="field">
-            <label for="new-password">Yeni Şifre (opsiyonel, en az 4 karakter)</label>
-            <input type="password" id="new-password" autocomplete="new-password">
+        </div>
+
+        <!-- ================= PROJELER ================= -->
+        <div class="admin-panel" id="panel-projects">
+          <div class="section-head">
+            <p class="eyebrow">Projeler</p>
+            <h2 style="font-size:24px;">Önce / Sonra Galerisi</h2>
+            <p class="lede">Eklediğiniz fotoğraflar Projelerimiz sayfasında ve anasayfada gösterilir.</p>
           </div>
-          <button type="submit" class="btn btn-ghost" id="account-btn">Bilgileri Güncelle</button>
-        </form>
+
+          <div id="projects-error" class="msg-box msg-error" role="alert"></div>
+          <div id="projects-loading" class="loading-state">Yükleniyor…</div>
+          <div id="projects-list"></div>
+
+          <div class="form-card account-box" style="margin-top:20px; max-width:560px;">
+            <h3 id="project-form-title">Yeni Proje Ekle</h3>
+            <div id="project-success" class="msg-box msg-success" role="status">Kaydedildi.</div>
+            <div id="project-error" class="msg-box msg-error" role="alert"></div>
+            <form id="project-form">
+              <input type="hidden" id="project-id">
+              <input type="hidden" id="project-existing-before">
+              <input type="hidden" id="project-existing-after">
+              <div class="field">
+                <label for="project-title">Proje Başlığı</label>
+                <input type="text" id="project-title" required>
+              </div>
+              <div class="field">
+                <label for="project-desc">Açıklama</label>
+                <textarea id="project-desc" rows="2"></textarea>
+              </div>
+              <div class="field-row">
+                <div class="field file-field">
+                  <label>Önce Fotoğrafı</label>
+                  <input type="file" accept="image/*" id="project-before-file">
+                  <div class="file-preview" id="project-before-preview"></div>
+                </div>
+                <div class="field file-field">
+                  <label>Sonra Fotoğrafı</label>
+                  <input type="file" accept="image/*" id="project-after-file">
+                  <div class="file-preview" id="project-after-preview"></div>
+                </div>
+              </div>
+              <div class="field">
+                <label for="project-order">Sıra Numarası</label>
+                <input type="number" id="project-order" value="0">
+              </div>
+              <button type="submit" class="btn btn-ghost" id="project-submit-btn">Projeyi Kaydet</button>
+              <button type="button" class="btn btn-outline" id="project-cancel-btn" style="display:none;">Vazgeç</button>
+              <p class="form-note">Fotoğraflar otomatik olarak küçültülür, büyük dosyalarda kaydetme birkaç saniye sürebilir.</p>
+            </form>
+          </div>
+        </div>
+
+        <!-- ================= HESAP ================= -->
+        <div class="admin-panel" id="panel-account">
+          <div class="section-head account-box">
+            <p class="eyebrow">Hesap Ayarları</p>
+            <h2 style="font-size:22px;">Kullanıcı Adı / Şifre Değiştir</h2>
+            <p class="lede" style="font-size:14px;">Varsayılan giriş bilgisi <strong>admin / 123</strong> idi — güvenlik için değiştirmenizi öneririz.</p>
+          </div>
+
+          <div class="account-box">
+            <div id="account-success" class="msg-box msg-success" role="status">Bilgileriniz güncellendi.</div>
+            <div id="account-error" class="msg-box msg-error" role="alert"></div>
+
+            <form id="account-form">
+              <div class="field">
+                <label for="current-password">Mevcut Şifre <span class="req">*</span></label>
+                <input type="password" id="current-password" required autocomplete="current-password">
+              </div>
+              <div class="field">
+                <label for="new-username">Yeni Kullanıcı Adı (opsiyonel)</label>
+                <input type="text" id="new-username" autocomplete="username">
+              </div>
+              <div class="field">
+                <label for="new-password">Yeni Şifre (opsiyonel, en az 4 karakter)</label>
+                <input type="password" id="new-password" autocomplete="new-password">
+              </div>
+              <button type="submit" class="btn btn-ghost" id="account-btn">Bilgileri Güncelle</button>
+            </form>
+          </div>
+        </div>
+
       </div>
     </div>
   </section>
@@ -128,9 +316,27 @@
 <script>
   var checkingAuth = document.getElementById('checking-auth');
   var adminContent = document.getElementById('admin-content');
-  var accountSection = document.getElementById('account-section');
+  var adminTabs = document.getElementById('admin-tabs');
   var adminUsernameEl = document.getElementById('admin-username');
 
+  /* ---------- Tabs ---------- */
+  document.querySelectorAll('.admin-tab').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.admin-tab').forEach(function (b) { b.classList.remove('active'); });
+      document.querySelectorAll('.admin-panel').forEach(function (p) { p.classList.remove('active'); });
+      btn.classList.add('active');
+      document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  function showMsg(id, text) {
+    var el = document.getElementById(id);
+    if (text !== undefined) el.textContent = text;
+    el.classList.add('show');
+  }
+  function hideMsg(id) { document.getElementById(id).classList.remove('show'); }
+
+  /* ---------- Auth ---------- */
   async function checkAuth() {
     try {
       var res = await fetch('/api/me');
@@ -142,45 +348,41 @@
       adminUsernameEl.textContent = data.username;
       checkingAuth.style.display = 'none';
       adminContent.style.display = 'block';
-      accountSection.style.display = 'block';
+      adminTabs.style.display = 'flex';
       loadLeads();
+      loadContent();
+      loadServices();
+      loadProjects();
     } catch (err) {
       window.location.href = '/admin-login';
     }
   }
 
+  document.getElementById('logout-btn').addEventListener('click', async function () {
+    await fetch('/api/logout', { method: 'POST' });
+    window.location.href = '/admin-login';
+  });
+
+  /* ---------- Teklifler ---------- */
   async function loadLeads() {
     var loadingEl = document.getElementById('leads-loading');
     var emptyEl = document.getElementById('leads-empty');
     var wrapEl = document.getElementById('leads-table-wrap');
     var tbody = document.getElementById('leads-tbody');
-    var errorEl = document.getElementById('leads-error');
 
     try {
       var res = await fetch('/api/leads');
       var data = await res.json();
       loadingEl.style.display = 'none';
 
-      if (!res.ok) {
-        errorEl.textContent = data.error || 'Kayıtlar yüklenemedi.';
-        errorEl.classList.add('show');
-        return;
-      }
-
-      if (!data.leads || data.leads.length === 0) {
-        emptyEl.style.display = 'block';
-        return;
-      }
+      if (!res.ok) { showMsg('leads-error', data.error || 'Kayıtlar yüklenemedi.'); return; }
+      if (!data.leads || data.leads.length === 0) { emptyEl.style.display = 'block'; return; }
 
       data.leads.forEach(function (lead) {
         var tr = document.createElement('tr');
         var date = new Date(lead.created_at);
         var dateStr = date.toLocaleDateString('tr-TR') + ' ' + date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-        function cell(text) {
-          var td = document.createElement('td');
-          td.textContent = text || '—';
-          return td;
-        }
+        function cell(text) { var td = document.createElement('td'); td.textContent = text || '—'; return td; }
         tr.appendChild(cell(dateStr));
         tr.appendChild(cell(lead.ad_soyad));
         tr.appendChild(cell(lead.firma));
@@ -194,34 +396,302 @@
         tr.appendChild(msgTd);
         tbody.appendChild(tr);
       });
-
       wrapEl.style.display = 'block';
     } catch (err) {
       loadingEl.style.display = 'none';
-      errorEl.textContent = 'Sunucuya ulaşılamadı.';
-      errorEl.classList.add('show');
+      showMsg('leads-error', 'Sunucuya ulaşılamadı.');
     }
   }
 
-  document.getElementById('logout-btn').addEventListener('click', async function () {
-    await fetch('/api/logout', { method: 'POST' });
-    window.location.href = '/admin-login';
+  /* ---------- Anasayfa & İletişim ---------- */
+  async function loadContent() {
+    try {
+      var res = await fetch('/api/content-get');
+      var data = await res.json();
+      if (data.hero) {
+        document.getElementById('hero-eyebrow-input').value = data.hero.eyebrow || '';
+        document.getElementById('hero-title-input').value = data.hero.title || '';
+        document.getElementById('hero-subtitle-input').value = data.hero.subtitle || '';
+      }
+      if (data.contact) {
+        document.getElementById('contact-phone1').value = data.contact.phone1 || '';
+        document.getElementById('contact-phone2').value = data.contact.phone2 || '';
+        document.getElementById('contact-email').value = data.contact.email || '';
+        document.getElementById('contact-address').value = data.contact.address || '';
+        document.getElementById('contact-hours').value = data.contact.hours || '';
+      }
+    } catch (err) { /* form boş kalır, yine de düzenlenebilir */ }
+  }
+
+  document.getElementById('hero-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    hideMsg('hero-error'); hideMsg('hero-success');
+    try {
+      var res = await fetch('/api/content-save', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key: 'hero',
+          value: {
+            eyebrow: document.getElementById('hero-eyebrow-input').value,
+            title: document.getElementById('hero-title-input').value,
+            subtitle: document.getElementById('hero-subtitle-input').value,
+          },
+        }),
+      });
+      var data = await res.json();
+      if (!res.ok) { showMsg('hero-error', data.error || 'Kaydedilemedi.'); return; }
+      showMsg('hero-success');
+    } catch (err) { showMsg('hero-error', 'Sunucuya ulaşılamadı.'); }
   });
 
+  document.getElementById('contact-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    hideMsg('contact-error'); hideMsg('contact-success');
+    try {
+      var res = await fetch('/api/content-save', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key: 'contact',
+          value: {
+            phone1: document.getElementById('contact-phone1').value,
+            phone2: document.getElementById('contact-phone2').value,
+            email: document.getElementById('contact-email').value,
+            address: document.getElementById('contact-address').value,
+            hours: document.getElementById('contact-hours').value,
+          },
+        }),
+      });
+      var data = await res.json();
+      if (!res.ok) { showMsg('contact-error', data.error || 'Kaydedilemedi.'); return; }
+      showMsg('contact-success');
+    } catch (err) { showMsg('contact-error', 'Sunucuya ulaşılamadı.'); }
+  });
+
+  /* ---------- Hizmetler ---------- */
+  async function loadServices() {
+    var loadingEl = document.getElementById('services-loading');
+    var listEl = document.getElementById('services-list');
+    try {
+      var res = await fetch('/api/services-list');
+      var data = await res.json();
+      loadingEl.style.display = 'none';
+      listEl.innerHTML = '';
+      (data.services || []).forEach(function (s) {
+        var row = document.createElement('div');
+        row.className = 'admin-item-row';
+        row.innerHTML =
+          '<div class="content"><h4></h4><p></p></div>' +
+          '<div class="actions"><button type="button" class="edit">Düzenle</button><button type="button" class="danger delete">Sil</button></div>';
+        row.querySelector('h4').textContent = s.title;
+        row.querySelector('p').textContent = s.description;
+        row.querySelector('.edit').addEventListener('click', function () {
+          document.getElementById('service-id').value = s.id;
+          document.getElementById('service-title').value = s.title;
+          document.getElementById('service-desc').value = s.description;
+          document.getElementById('service-order').value = s.sort_order || 0;
+          document.getElementById('service-form-title').textContent = 'Hizmeti Düzenle';
+          document.getElementById('service-submit-btn').textContent = 'Güncelle';
+          document.getElementById('service-cancel-btn').style.display = 'inline-flex';
+          document.getElementById('service-form').scrollIntoView({ behavior: 'smooth' });
+        });
+        row.querySelector('.delete').addEventListener('click', async function () {
+          if (!confirm('"' + s.title + '" silinsin mi?')) return;
+          await fetch('/api/services-delete', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: s.id }),
+          });
+          loadServices();
+        });
+        listEl.appendChild(row);
+      });
+      if (!data.services || data.services.length === 0) {
+        listEl.innerHTML = '<div class="empty-state">Henüz hizmet eklenmemiş.</div>';
+      }
+    } catch (err) {
+      loadingEl.style.display = 'none';
+      showMsg('services-error', 'Sunucuya ulaşılamadı.');
+    }
+  }
+
+  function resetServiceForm() {
+    document.getElementById('service-id').value = '';
+    document.getElementById('service-form').reset();
+    document.getElementById('service-form-title').textContent = 'Yeni Hizmet Ekle';
+    document.getElementById('service-submit-btn').textContent = 'Hizmeti Kaydet';
+    document.getElementById('service-cancel-btn').style.display = 'none';
+  }
+  document.getElementById('service-cancel-btn').addEventListener('click', resetServiceForm);
+
+  document.getElementById('service-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    hideMsg('service-error'); hideMsg('service-success');
+    try {
+      var res = await fetch('/api/services-save', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: document.getElementById('service-id').value || null,
+          title: document.getElementById('service-title').value,
+          description: document.getElementById('service-desc').value,
+          sortOrder: document.getElementById('service-order').value,
+        }),
+      });
+      var data = await res.json();
+      if (!res.ok) { showMsg('service-error', data.error || 'Kaydedilemedi.'); return; }
+      showMsg('service-success');
+      resetServiceForm();
+      loadServices();
+    } catch (err) { showMsg('service-error', 'Sunucuya ulaşılamadı.'); }
+  });
+
+  /* ---------- Projeler ---------- */
+  function resizeImageToBase64(file, maxDim, quality) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function () {
+        var img = new Image();
+        img.onload = function () {
+          var w = img.width, h = img.height;
+          if (w > h && w > maxDim) { h = Math.round(h * (maxDim / w)); w = maxDim; }
+          else if (h > maxDim) { w = Math.round(w * (maxDim / h)); h = maxDim; }
+          var canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', quality || 0.82));
+        };
+        img.onerror = reject;
+        img.src = reader.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  var pendingBeforeBase64 = null;
+  var pendingAfterBase64 = null;
+
+  document.getElementById('project-before-file').addEventListener('change', async function (e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    pendingBeforeBase64 = await resizeImageToBase64(file, 1000, 0.82);
+    document.getElementById('project-before-preview').innerHTML = '<img src="' + pendingBeforeBase64 + '">';
+  });
+  document.getElementById('project-after-file').addEventListener('change', async function (e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    pendingAfterBase64 = await resizeImageToBase64(file, 1000, 0.82);
+    document.getElementById('project-after-preview').innerHTML = '<img src="' + pendingAfterBase64 + '">';
+  });
+
+  async function loadProjects() {
+    var loadingEl = document.getElementById('projects-loading');
+    var listEl = document.getElementById('projects-list');
+    try {
+      var res = await fetch('/api/projects-list');
+      var data = await res.json();
+      loadingEl.style.display = 'none';
+      listEl.innerHTML = '';
+      (data.projects || []).forEach(function (p) {
+        var row = document.createElement('div');
+        row.className = 'admin-item-row';
+        row.innerHTML =
+          '<div class="thumbs"></div>' +
+          '<div class="content"><h4></h4><p></p></div>' +
+          '<div class="actions"><button type="button" class="edit">Düzenle</button><button type="button" class="danger delete">Sil</button></div>';
+        var thumbs = row.querySelector('.thumbs');
+        if (p.before_image_url) { var i1 = document.createElement('img'); i1.src = p.before_image_url; thumbs.appendChild(i1); }
+        if (p.after_image_url) { var i2 = document.createElement('img'); i2.src = p.after_image_url; thumbs.appendChild(i2); }
+        row.querySelector('h4').textContent = p.title;
+        row.querySelector('p').textContent = p.description || '';
+        row.querySelector('.edit').addEventListener('click', function () {
+          document.getElementById('project-id').value = p.id;
+          document.getElementById('project-title').value = p.title;
+          document.getElementById('project-desc').value = p.description || '';
+          document.getElementById('project-order').value = p.sort_order || 0;
+          document.getElementById('project-existing-before').value = p.before_image_url || '';
+          document.getElementById('project-existing-after').value = p.after_image_url || '';
+          pendingBeforeBase64 = null; pendingAfterBase64 = null;
+          document.getElementById('project-before-preview').innerHTML = p.before_image_url ? '<img src="' + p.before_image_url + '">' : '';
+          document.getElementById('project-after-preview').innerHTML = p.after_image_url ? '<img src="' + p.after_image_url + '">' : '';
+          document.getElementById('project-form-title').textContent = 'Projeyi Düzenle';
+          document.getElementById('project-submit-btn').textContent = 'Güncelle';
+          document.getElementById('project-cancel-btn').style.display = 'inline-flex';
+          document.getElementById('project-form').scrollIntoView({ behavior: 'smooth' });
+        });
+        row.querySelector('.delete').addEventListener('click', async function () {
+          if (!confirm('"' + p.title + '" silinsin mi?')) return;
+          await fetch('/api/projects-delete', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: p.id }),
+          });
+          loadProjects();
+        });
+        listEl.appendChild(row);
+      });
+      if (!data.projects || data.projects.length === 0) {
+        listEl.innerHTML = '<div class="empty-state">Henüz proje eklenmemiş. Eklediğinizde sitede otomatik görünecek.</div>';
+      }
+    } catch (err) {
+      loadingEl.style.display = 'none';
+      showMsg('projects-error', 'Sunucuya ulaşılamadı.');
+    }
+  }
+
+  function resetProjectForm() {
+    document.getElementById('project-id').value = '';
+    document.getElementById('project-existing-before').value = '';
+    document.getElementById('project-existing-after').value = '';
+    document.getElementById('project-form').reset();
+    document.getElementById('project-before-preview').innerHTML = '';
+    document.getElementById('project-after-preview').innerHTML = '';
+    pendingBeforeBase64 = null; pendingAfterBase64 = null;
+    document.getElementById('project-form-title').textContent = 'Yeni Proje Ekle';
+    document.getElementById('project-submit-btn').textContent = 'Projeyi Kaydet';
+    document.getElementById('project-cancel-btn').style.display = 'none';
+  }
+  document.getElementById('project-cancel-btn').addEventListener('click', resetProjectForm);
+
+  document.getElementById('project-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    hideMsg('project-error'); hideMsg('project-success');
+    var btn = document.getElementById('project-submit-btn');
+    btn.disabled = true;
+    var originalText = btn.textContent;
+    btn.textContent = 'Kaydediliyor…';
+    try {
+      var res = await fetch('/api/projects-save', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: document.getElementById('project-id').value || null,
+          title: document.getElementById('project-title').value,
+          description: document.getElementById('project-desc').value,
+          sortOrder: document.getElementById('project-order').value,
+          beforeImageBase64: pendingBeforeBase64,
+          afterImageBase64: pendingAfterBase64,
+          existingBeforeUrl: document.getElementById('project-existing-before').value,
+          existingAfterUrl: document.getElementById('project-existing-after').value,
+        }),
+      });
+      var data = await res.json();
+      btn.disabled = false; btn.textContent = originalText;
+      if (!res.ok) { showMsg('project-error', data.error || 'Kaydedilemedi.'); return; }
+      showMsg('project-success');
+      resetProjectForm();
+      loadProjects();
+    } catch (err) {
+      btn.disabled = false; btn.textContent = originalText;
+      showMsg('project-error', 'Sunucuya ulaşılamadı.');
+    }
+  });
+
+  /* ---------- Hesap ---------- */
   document.getElementById('account-form').addEventListener('submit', async function (e) {
     e.preventDefault();
-    var successEl = document.getElementById('account-success');
-    var errorEl = document.getElementById('account-error');
-    successEl.classList.remove('show');
-    errorEl.classList.remove('show');
-
+    hideMsg('account-error'); hideMsg('account-success');
     var btn = document.getElementById('account-btn');
     btn.disabled = true;
-
     try {
       var res = await fetch('/api/account', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           currentPassword: document.getElementById('current-password').value,
           newUsername: document.getElementById('new-username').value.trim(),
@@ -230,20 +700,13 @@
       });
       var data = await res.json();
       btn.disabled = false;
-
-      if (!res.ok) {
-        errorEl.textContent = data.error || 'Güncelleme başarısız.';
-        errorEl.classList.add('show');
-        return;
-      }
-
-      successEl.classList.add('show');
+      if (!res.ok) { showMsg('account-error', data.error || 'Güncelleme başarısız.'); return; }
+      showMsg('account-success');
       adminUsernameEl.textContent = data.username;
       document.getElementById('account-form').reset();
     } catch (err) {
       btn.disabled = false;
-      errorEl.textContent = 'Sunucuya ulaşılamadı.';
-      errorEl.classList.add('show');
+      showMsg('account-error', 'Sunucuya ulaşılamadı.');
     }
   });
 
