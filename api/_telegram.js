@@ -31,7 +31,16 @@ async function notifyTelegram(lead) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ chat_id: chatId, text: lines, parse_mode: 'Markdown' }),
-    }).catch(() => { /* bildirim ikincil, hata olsa da talebi etkilemesin */ })
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          const body = await res.text().catch(() => '');
+          console.error(`telegram send failed for chat_id ${chatId}: HTTP ${res.status} — ${body}`);
+        }
+      })
+      .catch((err) => {
+        console.error(`telegram send network error for chat_id ${chatId}:`, err);
+      })
   ));
 }
 
