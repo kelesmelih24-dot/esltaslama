@@ -402,3 +402,28 @@ p{ margin:0 0 1em; color:var(--ink-600); }
   padding:10px 16px; z-index:100; font-family:var(--font-mono); font-size:13px;
 }
 .skip-link:focus{ left:12px; top:12px; }
+
+/* ---------- SEO content blocks: machine types, brands, fault list ---------- */
+.keyword-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+@media (max-width:860px){ .keyword-grid{ grid-template-columns:repeat(2,1fr); } }
+@media (max-width:560px){ .keyword-grid{ grid-template-columns:1fr; } }
+.keyword-card{
+  padding:16px 18px; background:var(--white); border:1px solid var(--steel-200); border-left:3px solid var(--blue-600);
+}
+.keyword-card h3{ font-size:14.5px; margin-bottom:6px; }
+.keyword-card p{ font-size:13px; margin:0; }
+
+.brand-chips{ display:flex; flex-wrap:wrap; gap:10px; }
+.brand-chip{
+  font-family:var(--font-mono); font-size:13px; letter-spacing:.02em;
+  padding:10px 16px; border:1px solid var(--steel-200); border-radius:999px;
+  color:var(--navy-900); background:var(--white);
+}
+
+.fault-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px 24px; }
+@media (max-width:700px){ .fault-grid{ grid-template-columns:1fr; } }
+.fault-item{
+  display:flex; gap:10px; align-items:flex-start; font-size:14.5px; color:var(--ink-700);
+  padding:10px 0; border-bottom:1px solid var(--steel-150);
+}
+.fault-item .icon{ color:var(--spark-500); flex-shrink:0; margin-top:2px; }
