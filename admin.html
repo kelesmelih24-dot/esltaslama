@@ -352,7 +352,7 @@
   /* ---------- Auth ---------- */
   async function checkAuth() {
     try {
-      var res = await fetch('/api/me');
+      var res = await fetch('/api/me', { cache: 'no-store' });
       var data = await res.json();
       if (!res.ok || !data.authenticated) {
         window.location.href = '/admin-login';
@@ -384,7 +384,7 @@
     var tbody = document.getElementById('leads-tbody');
 
     try {
-      var res = await fetch('/api/leads');
+      var res = await fetch('/api/leads', { cache: 'no-store' });
       var data = await res.json();
       loadingEl.style.display = 'none';
 
@@ -419,7 +419,7 @@
   /* ---------- Anasayfa & İletişim ---------- */
   async function loadContent() {
     try {
-      var res = await fetch('/api/content-get');
+      var res = await fetch('/api/content-get', { cache: 'no-store' });
       var data = await res.json();
       if (data.hero) {
         document.getElementById('hero-eyebrow-input').value = data.hero.eyebrow || '';
@@ -485,7 +485,7 @@
     var loadingEl = document.getElementById('services-loading');
     var listEl = document.getElementById('services-list');
     try {
-      var res = await fetch('/api/services-list');
+      var res = await fetch('/api/services-list', { cache: 'no-store' });
       var data = await res.json();
       loadingEl.style.display = 'none';
       listEl.innerHTML = '';
@@ -646,7 +646,7 @@
     var loadingEl = document.getElementById('projects-loading');
     var listEl = document.getElementById('projects-list');
     try {
-      var res = await fetch('/api/projects-list');
+      var res = await fetch('/api/projects-list', { cache: 'no-store' });
       var data = await res.json();
       loadingEl.style.display = 'none';
       listEl.innerHTML = '';
