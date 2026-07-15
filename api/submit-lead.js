@@ -1,4 +1,5 @@
 const { getClient } = require('./_db');
+const { notifyTelegram } = require('./_telegram');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
@@ -33,6 +34,13 @@ module.exports = async (req, res) => {
     });
 
     if (error) throw error;
+
+    try {
+      await notifyTelegram({ adSoyad, firma, telefon, eposta, sehir, hizmet, tezgah, mesaj });
+    } catch (notifyErr) {
+      console.error('telegram notify error:', notifyErr);
+      // Telegram bildirimi başarısız olsa bile talep zaten kaydedildi, hatayı yutuyoruz.
+    }
 
     return res.status(200).json({ ok: true });
   } catch (err) {
