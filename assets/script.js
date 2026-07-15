@@ -1,4 +1,4 @@
-// ESL Makina — shared site behaviour
+// ESL Makine — shared site behaviour
 document.addEventListener('DOMContentLoaded', function () {
 
   /* Mobile nav toggle */
@@ -146,7 +146,7 @@ document.addEventListener('DOMContentLoaded', function () {
         emailPayload.append('Hizmet', payload.hizmet);
         emailPayload.append('Tezgah Marka Model', payload.tezgah);
         emailPayload.append('Mesaj', payload.mesaj);
-        emailPayload.append('_subject', 'Yeni Teklif Talebi - ESL Makina Web Sitesi');
+        emailPayload.append('_subject', 'Yeni Teklif Talebi - ESL Makine Web Sitesi');
         fetch('https://formsubmit.co/ajax/esahin@mail.ru', { method: 'POST', body: emailPayload }).catch(function () {});
       } catch (e) { /* sessiz geç, e-posta bildirimi ikincil */ }
     });
@@ -252,7 +252,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function projectCardHtml(p) {
     var hasBoth = p.before_image_url && p.after_image_url;
     var singleUrl = p.after_image_url || p.before_image_url;
-    var altText = (p.title && p.title.trim()) ? p.title : 'ESL Makina proje fotoğrafı';
+    var altText = (p.title && p.title.trim()) ? p.title : 'ESL Makine proje fotoğrafı';
 
     if (hasBoth) {
       return '' +
