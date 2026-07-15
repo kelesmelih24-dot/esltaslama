@@ -239,9 +239,20 @@ document.addEventListener('DOMContentLoaded', function () {
     return div.innerHTML;
   }
 
+  function infoBlockHtml(p) {
+    var hasTitle = p.title && p.title.trim();
+    var hasDesc = p.description && p.description.trim();
+    if (!hasTitle && !hasDesc) return '';
+    return '<div class="info">' +
+      (hasTitle ? '<h3>' + escapeHtml(p.title) + '</h3>' : '') +
+      (hasDesc ? '<p>' + escapeHtml(p.description) + '</p>' : '') +
+      '</div>';
+  }
+
   function projectCardHtml(p) {
     var hasBoth = p.before_image_url && p.after_image_url;
     var singleUrl = p.after_image_url || p.before_image_url;
+    var altText = (p.title && p.title.trim()) ? p.title : 'ESL Makina proje fotoğrafı';
 
     if (hasBoth) {
       return '' +
@@ -249,20 +260,20 @@ document.addEventListener('DOMContentLoaded', function () {
           '<div class="compare" style="--compare-w:480px;">' +
             '<span class="compare-label before">Önce</span>' +
             '<span class="compare-label after">Sonra</span>' +
-            '<img src="' + p.before_image_url + '" alt="' + escapeHtml(p.title) + ' — önce">' +
-            '<div class="after-wrap"><img src="' + p.after_image_url + '" alt="' + escapeHtml(p.title) + ' — sonra"></div>' +
+            '<img src="' + p.before_image_url + '" alt="' + escapeHtml(altText) + ' — önce">' +
+            '<div class="after-wrap"><img src="' + p.after_image_url + '" alt="' + escapeHtml(altText) + ' — sonra"></div>' +
             '<div class="compare-handle"></div>' +
             '<input type="range" class="compare-range" min="0" max="100" value="50" aria-label="Önce sonra karşılaştırma kaydırıcısı">' +
           '</div>' +
-          '<div class="info"><h3>' + escapeHtml(p.title) + '</h3><p>' + escapeHtml(p.description || '') + '</p></div>' +
+          infoBlockHtml(p) +
         '</div>';
     }
 
     if (singleUrl) {
       return '' +
         '<div class="project-card">' +
-          '<div class="single-photo"><img src="' + singleUrl + '" alt="' + escapeHtml(p.title) + '" loading="lazy"></div>' +
-          '<div class="info"><h3>' + escapeHtml(p.title) + '</h3><p>' + escapeHtml(p.description || '') + '</p></div>' +
+          '<div class="single-photo"><img src="' + singleUrl + '" alt="' + escapeHtml(altText) + '" loading="lazy"></div>' +
+          infoBlockHtml(p) +
         '</div>';
     }
 
