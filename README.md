@@ -1,4 +1,4 @@
-# ESL Makina Taşlama Tezgahları — Web Sitesi
+# ESL Makine Taşlama Tezgahları — Web Sitesi
 
 Statik HTML/CSS/JS ile hazırlanmış, çoklu sayfa yapısına sahip, SEO uyumlu kurumsal site.
 
@@ -19,7 +19,7 @@ Bu klasörde (tüm dosyaların bulunduğu yerde) sırasıyla:
 ```bash
 git init
 git add .
-git commit -m "İlk sürüm: ESL Makina web sitesi"
+git commit -m "İlk sürüm: ESL Makine web sitesi"
 ```
 
 GitHub'da yeni, **boş** bir repo oluşturun (README/gitignore eklemeden), sonra:

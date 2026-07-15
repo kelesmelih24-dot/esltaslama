@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Yönetici Paneli | ESL Makina</title>
+<title>Yönetici Paneli | ESL Makine</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="/assets/images/logo_final.png">
-<link rel="stylesheet" href="/assets/style.css?v=4">
+<link rel="stylesheet" href="/assets/style.css?v=5">
 <style>
   .admin-header{
     display:flex; align-items:center; justify-content:space-between; gap:16px;
@@ -81,8 +81,8 @@
 
 <header class="admin-header">
   <div class="login-logo">
-    <img src="/assets/images/logo_final.png" alt="ESL Makina logo">
-    <span><strong>ESL Makina</strong>Yönetici Paneli</span>
+    <img src="/assets/images/logo_final.png" alt="ESL Makine logo">
+    <span><strong>ESL Makine</strong>Yönetici Paneli</span>
   </div>
   <div class="admin-user">
     <span id="admin-username">…</span>
@@ -509,11 +509,21 @@
         });
         row.querySelector('.delete').addEventListener('click', async function () {
           if (!confirm('"' + s.title + '" silinsin mi?')) return;
-          await fetch('/api/services-delete', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: s.id }),
-          });
-          loadServices();
+          hideMsg('services-error');
+          try {
+            var delRes = await fetch('/api/services-delete', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id: s.id }),
+            });
+            var delData = await delRes.json().catch(function () { return {}; });
+            if (!delRes.ok) {
+              showMsg('services-error', delData.error || ('Silinemedi (HTTP ' + delRes.status + ').'));
+              return;
+            }
+            loadServices();
+          } catch (err) {
+            showMsg('services-error', 'Sunucuya ulaşılamadı.');
+          }
         });
         listEl.appendChild(row);
       });
@@ -668,12 +678,23 @@
           document.getElementById('project-form').scrollIntoView({ behavior: 'smooth' });
         });
         row.querySelector('.delete').addEventListener('click', async function () {
-          if (!confirm('"' + p.title + '" silinsin mi?')) return;
-          await fetch('/api/projects-delete', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: p.id }),
-          });
-          loadProjects();
+          var label = (p.title && p.title.trim()) ? p.title : 'bu fotoğraf';
+          if (!confirm(label + ' silinsin mi?')) return;
+          hideMsg('projects-error');
+          try {
+            var delRes = await fetch('/api/projects-delete', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id: p.id }),
+            });
+            var delData = await delRes.json().catch(function () { return {}; });
+            if (!delRes.ok) {
+              showMsg('projects-error', delData.error || ('Silinemedi (HTTP ' + delRes.status + ').'));
+              return;
+            }
+            loadProjects();
+          } catch (err) {
+            showMsg('projects-error', 'Sunucuya ulaşılamadı.');
+          }
         });
         listEl.appendChild(row);
       });
