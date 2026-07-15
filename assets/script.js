@@ -240,41 +240,56 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function projectCardHtml(p) {
-    var before = p.before_image_url || '/assets/images/before_clean.jpg';
-    var after = p.after_image_url || '/assets/images/after_clean.jpg';
-    return '' +
-      '<div class="project-card">' +
-        '<div class="compare" style="--compare-w:480px;">' +
-          '<span class="compare-label before">Önce</span>' +
-          '<span class="compare-label after">Sonra</span>' +
-          '<img src="' + before + '" alt="' + escapeHtml(p.title) + ' — önce">' +
-          '<div class="after-wrap"><img src="' + after + '" alt="' + escapeHtml(p.title) + ' — sonra"></div>' +
-          '<div class="compare-handle"></div>' +
-          '<input type="range" class="compare-range" min="0" max="100" value="50" aria-label="Önce sonra karşılaştırma kaydırıcısı">' +
-        '</div>' +
-        '<div class="info"><h3>' + escapeHtml(p.title) + '</h3><p>' + escapeHtml(p.description || '') + '</p></div>' +
-      '</div>';
+    var hasBoth = p.before_image_url && p.after_image_url;
+    var singleUrl = p.after_image_url || p.before_image_url;
+
+    if (hasBoth) {
+      return '' +
+        '<div class="project-card">' +
+          '<div class="compare" style="--compare-w:480px;">' +
+            '<span class="compare-label before">Önce</span>' +
+            '<span class="compare-label after">Sonra</span>' +
+            '<img src="' + p.before_image_url + '" alt="' + escapeHtml(p.title) + ' — önce">' +
+            '<div class="after-wrap"><img src="' + p.after_image_url + '" alt="' + escapeHtml(p.title) + ' — sonra"></div>' +
+            '<div class="compare-handle"></div>' +
+            '<input type="range" class="compare-range" min="0" max="100" value="50" aria-label="Önce sonra karşılaştırma kaydırıcısı">' +
+          '</div>' +
+          '<div class="info"><h3>' + escapeHtml(p.title) + '</h3><p>' + escapeHtml(p.description || '') + '</p></div>' +
+        '</div>';
+    }
+
+    if (singleUrl) {
+      return '' +
+        '<div class="project-card">' +
+          '<div class="single-photo"><img src="' + singleUrl + '" alt="' + escapeHtml(p.title) + '" loading="lazy"></div>' +
+          '<div class="info"><h3>' + escapeHtml(p.title) + '</h3><p>' + escapeHtml(p.description || '') + '</p></div>' +
+        '</div>';
+    }
+
+    return '';
   }
 
   function renderProjectsGrid(projects) {
     var grid = document.getElementById('projects-grid');
     if (!grid || !projects || projects.length === 0) return;
-    grid.innerHTML = projects.map(projectCardHtml).join('');
+    var html = projects.map(projectCardHtml).join('');
+    if (!html.trim()) return;
+    grid.innerHTML = html;
     initCompareSliders(grid);
   }
 
   function renderFeaturedProject(projects) {
     var wrap = document.getElementById('featured-project-wrap');
     if (!wrap || !projects || projects.length === 0) return;
-    var p = projects[0];
-    var before = p.before_image_url || '/assets/images/before_clean.jpg';
-    var after = p.after_image_url || '/assets/images/after_clean.jpg';
+    // Anasayfadaki kaydırıcı için hem önce hem sonra fotoğrafı olan ilk projeyi seç.
+    var p = projects.find(function (x) { return x.before_image_url && x.after_image_url; });
+    if (!p) return;
     wrap.innerHTML = '' +
       '<div class="compare" style="--compare-w:480px;">' +
         '<span class="compare-label before">Önce</span>' +
         '<span class="compare-label after">Sonra</span>' +
-        '<img src="' + before + '" alt="' + escapeHtml(p.title) + ' — önce">' +
-        '<div class="after-wrap"><img src="' + after + '" alt="' + escapeHtml(p.title) + ' — sonra"></div>' +
+        '<img src="' + p.before_image_url + '" alt="' + escapeHtml(p.title) + ' — önce">' +
+        '<div class="after-wrap"><img src="' + p.after_image_url + '" alt="' + escapeHtml(p.title) + ' — sonra"></div>' +
         '<div class="compare-handle"></div>' +
         '<input type="range" class="compare-range" min="0" max="100" value="50" aria-label="Önce sonra karşılaştırma kaydırıcısı">' +
       '</div>';

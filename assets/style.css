@@ -318,6 +318,8 @@ p{ margin:0 0 1em; color:var(--ink-600); }
 @media (max-width:760px){ .project-grid{ grid-template-columns:1fr; } }
 .project-card{ background:var(--white); border:1px solid var(--steel-200); }
 .project-card .compare{ aspect-ratio:480/316; max-width:none; }
+.project-card .single-photo{ width:100%; aspect-ratio:480/316; overflow:hidden; background:var(--steel-100); }
+.project-card .single-photo img{ width:100%; height:100%; object-fit:cover; display:block; }
 .project-card .info{ padding:20px 22px; }
 .project-card h3{ font-size:16px; margin-bottom:6px; }
 .project-card p{ font-size:14px; margin:0; }
