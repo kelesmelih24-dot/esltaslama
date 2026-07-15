@@ -596,13 +596,6 @@
   });
 
   /* ---------- Toplu Fotoğraf Ekle ---------- */
-  function titleFromFilename(name) {
-    var base = name.replace(/\.[^.]+$/, '');
-    base = base.replace(/[_-]+/g, ' ').trim();
-    if (!base) base = 'Proje';
-    return base.charAt(0).toUpperCase() + base.slice(1);
-  }
-
   document.getElementById('bulk-photos-input').addEventListener('change', async function (e) {
     var files = Array.from(e.target.files || []);
     if (files.length === 0) return;
@@ -622,7 +615,7 @@
         var res = await fetch('/api/projects-save', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            title: titleFromFilename(file.name),
+            title: '',
             description: '',
             sortOrder: 0,
             afterImageBase64: base64,
@@ -657,7 +650,7 @@
         var thumbs = row.querySelector('.thumbs');
         if (p.before_image_url) { var i1 = document.createElement('img'); i1.src = p.before_image_url; thumbs.appendChild(i1); }
         if (p.after_image_url) { var i2 = document.createElement('img'); i2.src = p.after_image_url; thumbs.appendChild(i2); }
-        row.querySelector('h4').textContent = p.title;
+        row.querySelector('h4').textContent = (p.title && p.title.trim()) ? p.title : '(Başlıksız — sitede başlık gösterilmez)';
         row.querySelector('p').textContent = p.description || '';
         row.querySelector('.edit').addEventListener('click', function () {
           document.getElementById('project-id').value = p.id;
