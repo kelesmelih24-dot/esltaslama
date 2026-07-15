@@ -15,7 +15,6 @@ module.exports = async (req, res) => {
 
     if (error) throw error;
 
-    res.setHeader('Cache-Control', 'public, max-age=60');
     return res.status(200).json({ projects: data || [] });
   } catch (err) {
     console.error('projects-list error:', err);

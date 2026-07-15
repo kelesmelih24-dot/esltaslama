@@ -34,7 +34,6 @@ module.exports = async (req, res) => {
       result[row.key] = { ...DEFAULTS[row.key], ...row.value };
     });
 
-    res.setHeader('Cache-Control', 'public, max-age=60');
     return res.status(200).json(result);
   } catch (err) {
     console.error('content-get error:', err);
