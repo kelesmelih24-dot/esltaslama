@@ -43,8 +43,10 @@ module.exports = async (req, res) => {
     const sortOrder = Number.isFinite(Number(b.sortOrder)) ? Number(b.sortOrder) : 0;
     const id = b.id ? Number(b.id) : null;
 
-    if (!title) {
-      return res.status(400).json({ error: 'Proje başlığı zorunludur.' });
+    const hasAnyImage = Boolean(b.beforeImageBase64 || b.afterImageBase64 || b.existingBeforeUrl || b.existingAfterUrl);
+
+    if (!title && !hasAnyImage) {
+      return res.status(400).json({ error: 'Proje başlığı veya en az bir fotoğraf gerekli.' });
     }
 
     const supabase = getClient();
