@@ -39,11 +39,11 @@ git push -u origin main
 
 ## 3) Kendi Alan Adınızı Bağlama (opsiyonel)
 
-Vercel projesinde **Settings → Domains** kısmından kendi alan adınızı (ör. `eslmakina.com.tr`) ekleyip, alan adı sağlayıcınızda gösterilen DNS kayıtlarını (genelde bir `A` ve/veya `CNAME` kaydı) tanımlamanız yeterli.
+Vercel projesinde **Settings → Domains** kısmından kendi alan adınızı (ör. `eslmakine.com`) ekleyip, alan adı sağlayıcınızda gösterilen DNS kayıtlarını (genelde bir `A` ve/veya `CNAME` kaydı) tanımlamanız yeterli.
 
 ## 4) Domain Bağladıktan Sonra Güncellenecek Yerler
 
-Kod içinde SEO amaçlı `https://www.eslmakina.com.tr` placeholder domaini kullanıldı. Gerçek alan adınızı bağladıktan sonra şu dosyalarda geçen adresi kendi alan adınızla değiştirin:
+Kod içinde SEO amaçlı `https://www.eslmakine.com` placeholder domaini kullanıldı. Gerçek alan adınızı bağladıktan sonra şu dosyalarda geçen adresi kendi alan adınızla değiştirin:
 
 - Her sayfadaki `<link rel="canonical">` ve `<meta property="og:...">` etiketleri
 - `sitemap.xml` içindeki tüm `<loc>` adresleri

@@ -4,4 +4,4 @@ Disallow: /admin
 Disallow: /admin-login
 Disallow: /api/
 
-Sitemap: https://www.eslmakina.com.tr/sitemap.xml
+Sitemap: https://www.eslmakine.com/sitemap.xml
