@@ -6,7 +6,7 @@
 <title>Yönetici Paneli | ESL Makine</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="/assets/images/logo_final.png">
-<link rel="stylesheet" href="/assets/style.css?v=6">
+<link rel="stylesheet" href="/assets/style.css?v=8">
 <style>
   .admin-header{
     display:flex; align-items:center; justify-content:space-between; gap:16px;
@@ -95,6 +95,7 @@
   <button class="admin-tab" data-tab="content">Anasayfa &amp; İletişim</button>
   <button class="admin-tab" data-tab="services">Hizmetler</button>
   <button class="admin-tab" data-tab="projects">Projeler</button>
+  <button class="admin-tab" data-tab="listings">Satıştaki Tezgahlar</button>
   <button class="admin-tab" data-tab="account">Hesap</button>
 </nav>
 
@@ -291,6 +292,62 @@
           </div>
         </div>
 
+        <!-- ================= SATIŞTAKI TEZGAHLAR ================= -->
+        <div class="admin-panel" id="panel-listings">
+          <div class="section-head">
+            <p class="eyebrow">Satıştaki Tezgahlar</p>
+            <h2 style="font-size:24px;">İlan Yönetimi</h2>
+            <p class="lede">Buradaki ilanlar sitedeki "Satıştaki Tezgahlar" sayfasında görünür.</p>
+          </div>
+
+          <div id="listings-admin-error" class="msg-box msg-error" role="alert"></div>
+          <div id="listings-admin-loading" class="loading-state">Yükleniyor…</div>
+          <div id="listings-admin-list"></div>
+
+          <div class="form-card account-box" style="margin-top:20px; max-width:560px;">
+            <h3 id="listing-form-title">Yeni İlan Ekle</h3>
+            <div id="listing-success" class="msg-box msg-success" role="status">Kaydedildi.</div>
+            <div id="listing-error" class="msg-box msg-error" role="alert"></div>
+            <form id="listing-form">
+              <input type="hidden" id="listing-id">
+              <input type="hidden" id="listing-existing-image">
+              <div class="field">
+                <label for="listing-title">Tezgah Başlığı</label>
+                <input type="text" id="listing-title" required placeholder="Örn: Universal Taşlama Tezgahı - Revizyonlu">
+              </div>
+              <div class="field">
+                <label for="listing-desc">Açıklama</label>
+                <textarea id="listing-desc" rows="3" placeholder="Marka, model, yaş, durum vb. bilgiler"></textarea>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="listing-price">Fiyat (TL, opsiyonel)</label>
+                  <input type="text" id="listing-price" placeholder="Örn: 85000">
+                </div>
+                <div class="field">
+                  <label for="listing-status">Durum</label>
+                  <select id="listing-status">
+                    <option value="available">Satışta</option>
+                    <option value="sold">Satıldı</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field file-field">
+                <label>Fotoğraf</label>
+                <input type="file" accept="image/*" id="listing-photo-file">
+                <div class="file-preview" id="listing-photo-preview"></div>
+              </div>
+              <div class="field">
+                <label for="listing-order">Sıra Numarası</label>
+                <input type="number" id="listing-order" value="0">
+              </div>
+              <button type="submit" class="btn btn-ghost" id="listing-submit-btn">İlanı Kaydet</button>
+              <button type="button" class="btn btn-outline" id="listing-cancel-btn" style="display:none;">Vazgeç</button>
+              <p class="form-note">Bir tezgah satıldığında listedeki "Satıldı Olarak İşaretle" butonuna basabilir, ya da ilanı tamamen kaldırmak için "Sil" butonunu kullanabilirsiniz.</p>
+            </form>
+          </div>
+        </div>
+
         <!-- ================= HESAP ================= -->
         <div class="admin-panel" id="panel-account">
           <div class="section-head account-box">
@@ -366,6 +423,7 @@
       loadContent();
       loadServices();
       loadProjects();
+      loadListings();
     } catch (err) {
       window.location.href = '/admin-login';
     }
@@ -751,6 +809,158 @@
     } catch (err) {
       btn.disabled = false; btn.textContent = originalText;
       showMsg('project-error', 'Sunucuya ulaşılamadı.');
+    }
+  });
+
+  /* ---------- Satıştaki Tezgahlar ---------- */
+  var pendingListingPhotoBase64 = null;
+
+  document.getElementById('listing-photo-file').addEventListener('change', async function (e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    pendingListingPhotoBase64 = await resizeImageToBase64(file, 1200, 0.84);
+    document.getElementById('listing-photo-preview').innerHTML = '<img src="' + pendingListingPhotoBase64 + '">';
+  });
+
+  function formatListingPrice(price) {
+    if (price === null || price === undefined) return null;
+    var num = Number(price);
+    if (!Number.isFinite(num)) return null;
+    return num.toLocaleString('tr-TR') + ' TL';
+  }
+
+  async function loadListings() {
+    var loadingEl = document.getElementById('listings-admin-loading');
+    var listEl = document.getElementById('listings-admin-list');
+    try {
+      var res = await fetch('/api/listings-list', { cache: 'no-store' });
+      var data = await res.json();
+      loadingEl.style.display = 'none';
+      listEl.innerHTML = '';
+      (data.listings || []).forEach(function (item) {
+        var row = document.createElement('div');
+        row.className = 'admin-item-row';
+        var isSold = item.status === 'sold';
+        var priceText = formatListingPrice(item.price);
+        row.innerHTML =
+          '<div class="thumbs"></div>' +
+          '<div class="content"><h4></h4><p></p></div>' +
+          '<div class="actions">' +
+            '<button type="button" class="toggle-status">' + (isSold ? 'Satışa Al' : 'Satıldı Olarak İşaretle') + '</button>' +
+            '<button type="button" class="edit">Düzenle</button>' +
+            '<button type="button" class="danger delete">Sil</button>' +
+          '</div>';
+        var thumbs = row.querySelector('.thumbs');
+        if (item.image_url) { var img = document.createElement('img'); img.src = item.image_url; thumbs.appendChild(img); }
+        var titleText = (item.title && item.title.trim()) ? item.title : '(Başlıksız)';
+        row.querySelector('h4').textContent = titleText + (isSold ? '  —  [SATILDI]' : '') + (priceText ? '  ·  ' + priceText : '');
+        row.querySelector('p').textContent = item.description || '';
+
+        row.querySelector('.toggle-status').addEventListener('click', async function () {
+          hideMsg('listings-admin-error');
+          try {
+            var toggleRes = await fetch('/api/listings-save', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                id: item.id, title: item.title, description: item.description,
+                price: item.price, sortOrder: item.sort_order,
+                existingImageUrl: item.image_url,
+                status: isSold ? 'available' : 'sold',
+              }),
+            });
+            var toggleData = await toggleRes.json().catch(function () { return {}; });
+            if (!toggleRes.ok) { showMsg('listings-admin-error', toggleData.error || 'Durum güncellenemedi.'); return; }
+            loadListings();
+          } catch (err) {
+            showMsg('listings-admin-error', 'Sunucuya ulaşılamadı.');
+          }
+        });
+
+        row.querySelector('.edit').addEventListener('click', function () {
+          document.getElementById('listing-id').value = item.id;
+          document.getElementById('listing-title').value = item.title || '';
+          document.getElementById('listing-desc').value = item.description || '';
+          document.getElementById('listing-price').value = item.price !== null && item.price !== undefined ? item.price : '';
+          document.getElementById('listing-status').value = item.status || 'available';
+          document.getElementById('listing-order').value = item.sort_order || 0;
+          document.getElementById('listing-existing-image').value = item.image_url || '';
+          pendingListingPhotoBase64 = null;
+          document.getElementById('listing-photo-preview').innerHTML = item.image_url ? '<img src="' + item.image_url + '">' : '';
+          document.getElementById('listing-form-title').textContent = 'İlanı Düzenle';
+          document.getElementById('listing-submit-btn').textContent = 'Güncelle';
+          document.getElementById('listing-cancel-btn').style.display = 'inline-flex';
+          document.getElementById('listing-form').scrollIntoView({ behavior: 'smooth' });
+        });
+
+        row.querySelector('.delete').addEventListener('click', async function () {
+          if (!confirm((item.title || 'Bu ilan') + ' silinsin mi?')) return;
+          hideMsg('listings-admin-error');
+          try {
+            var delRes = await fetch('/api/listings-delete', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id: item.id }),
+            });
+            var delData = await delRes.json().catch(function () { return {}; });
+            if (!delRes.ok) { showMsg('listings-admin-error', delData.error || 'Silinemedi.'); return; }
+            loadListings();
+          } catch (err) {
+            showMsg('listings-admin-error', 'Sunucuya ulaşılamadı.');
+          }
+        });
+
+        listEl.appendChild(row);
+      });
+      if (!data.listings || data.listings.length === 0) {
+        listEl.innerHTML = '<div class="empty-state">Henüz ilan eklenmemiş.</div>';
+      }
+    } catch (err) {
+      loadingEl.style.display = 'none';
+      showMsg('listings-admin-error', 'Sunucuya ulaşılamadı.');
+    }
+  }
+
+  function resetListingForm() {
+    document.getElementById('listing-id').value = '';
+    document.getElementById('listing-existing-image').value = '';
+    document.getElementById('listing-form').reset();
+    document.getElementById('listing-photo-preview').innerHTML = '';
+    pendingListingPhotoBase64 = null;
+    document.getElementById('listing-form-title').textContent = 'Yeni İlan Ekle';
+    document.getElementById('listing-submit-btn').textContent = 'İlanı Kaydet';
+    document.getElementById('listing-cancel-btn').style.display = 'none';
+  }
+  document.getElementById('listing-cancel-btn').addEventListener('click', resetListingForm);
+
+  document.getElementById('listing-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    hideMsg('listing-error'); hideMsg('listing-success');
+    var btn = document.getElementById('listing-submit-btn');
+    btn.disabled = true;
+    var originalText = btn.textContent;
+    btn.textContent = 'Kaydediliyor…';
+    try {
+      var res = await fetch('/api/listings-save', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: document.getElementById('listing-id').value || null,
+          title: document.getElementById('listing-title').value,
+          description: document.getElementById('listing-desc').value,
+          price: document.getElementById('listing-price').value,
+          status: document.getElementById('listing-status').value,
+          sortOrder: document.getElementById('listing-order').value,
+          imageBase64: pendingListingPhotoBase64,
+          existingImageUrl: document.getElementById('listing-existing-image').value,
+        }),
+      });
+      var data = await res.json();
+      btn.disabled = false; btn.textContent = originalText;
+      if (!res.ok) { showMsg('listing-error', data.error || 'Kaydedilemedi.'); return; }
+      showMsg('listing-success');
+      resetListingForm();
+      loadListings();
+    } catch (err) {
+      btn.disabled = false; btn.textContent = originalText;
+      showMsg('listing-error', 'Sunucuya ulaşılamadı.');
     }
   });
 
