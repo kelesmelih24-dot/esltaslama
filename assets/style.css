@@ -162,16 +162,18 @@ p{ margin:0 0 1em; color:var(--ink-600); }
   .main-nav a{ padding:12px 8px; }
   .header-phone{ display:none; }
   .nav-toggle{ display:inline-flex; }
-  .header-inner{ gap:8px; padding:10px 14px; }
+  .header-inner{ gap:6px; padding:10px 12px; }
   .brand{ gap:8px; min-width:0; }
-  .brand img{ height:38px; }
-  .brand-text span{ display:none; }
-  .brand-text strong{ font-size:15px; }
-  .nav-toggle{ padding:8px 9px; font-size:13px; }
-  .header-cta{ gap:8px; }
+  .brand img{ height:30px; flex-shrink:0; }
+  .brand-text{ min-width:0; }
+  .brand-text strong{ font-size:13px; white-space:nowrap; }
+  .brand-text span{ font-size:8px; letter-spacing:.06em; white-space:nowrap; }
+  .nav-toggle{ padding:7px 9px; font-size:14px; flex-shrink:0; }
+  .header-cta{ gap:6px; flex-shrink:0; }
+  .admin-link{ width:30px; height:30px; }
 }
-@media (max-width:400px){
-  .brand-text{ display:none; }
+@media (max-width:340px){
+  .brand-text span{ display:none; }
 }
 
 /* ---------- hero ---------- */
