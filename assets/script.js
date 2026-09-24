@@ -11,6 +11,26 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  /* Nav dropdown (Elektrik Hizmetleri vb.) */
+  document.querySelectorAll('.nav-dropdown').forEach(function (dropdown) {
+    var btn = dropdown.querySelector('.nav-dropdown-toggle');
+    if (!btn) return;
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var isOpen = dropdown.classList.toggle('open');
+      btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+  });
+  document.addEventListener('click', function (e) {
+    document.querySelectorAll('.nav-dropdown.open').forEach(function (dropdown) {
+      if (!dropdown.contains(e.target)) {
+        dropdown.classList.remove('open');
+        var btn = dropdown.querySelector('.nav-dropdown-toggle');
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+      }
+    });
+  });
+
   /* Before / after compare sliders — callable again for dynamically-injected widgets */
   function initCompareSliders(root) {
     (root || document).querySelectorAll('.compare').forEach(function (el) {
