@@ -4,7 +4,7 @@
   "private": true,
   "description": "ESL Makina Taşlama Tezgahları — statik site + admin paneli (Vercel Serverless Functions + Postgres)",
   "engines": {
-    "node": "20.x"
+    "node": "24.x"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.3",
